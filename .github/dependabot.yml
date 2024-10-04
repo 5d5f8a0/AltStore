@@ -1,0 +1,165 @@
+import React, { useState } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { toast } from "@/components/ui/use-toast"
+import { Loader2, Play, Smartphone, Download, GitBranch } from 'lucide-react'
+
+export default function GitAppInstaller() {
+  const [workspaceName, setWorkspaceName] = useState('')
+  const [schemeName, setSchemeName] = useState('')
+  const [appName, setAppName] = useState('')
+  const [gitRepoUrl, setGitRepoUrl] = useState('')
+  const [isBuilding, setIsBuilding] = useState(false)
+  const [isBooting, setIsBooting] = useState(false)
+  const [isInstalling, setIsInstalling] = useState(false)
+  const [log, setLog] = useState('')
+
+  const appendToLog = (message: string) => {
+    setLog((prevLog) => prevLog + message + '\n')
+  }
+
+  const handleBuild = () => {
+    if (!workspaceName || !schemeName || !appName) {
+      toast({
+        title: "Error",
+        description: "Please fill in all fields for the build process.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsBuilding(true)
+    appendToLog("Starting build process...")
+
+    // Simulate build process
+    setTimeout(() => {
+      appendToLog(`xcodebuild -workspace ${workspaceName}.xcworkspace \\
+-scheme ${schemeName} \\
+-sdk iphonesimulator \\
+-destination 'platform=iOS Simulator,name=iPhone 14,OS=16.4' \\
+clean build install DSTROOT=./App`)
+      appendToLog("Build completed successfully.")
+      setIsBuilding(false)
+      toast({
+        title: "Build Completed",
+        description: "The .app file has been created successfully.",
+      })
+    }, 3000)
+  }
+
+  const handleBootSimulator = () => {
+    setIsBooting(true)
+    appendToLog("Booting iPhone 14 simulator...")
+
+    // Simulate booting process
+    setTimeout(() => {
+      appendToLog("xcrun simctl boot \"iPhone 14\"")
+      appendToLog("Simulator booted successfully.")
+      setIsBooting(false)
+      toast({
+        title: "Simulator Booted",
+        description: "The iPhone 14 simulator has been started.",
+      })
+    }, 2000)
+  }
+
+  const handleInstallApp = () => {
+    if (!gitRepoUrl) {
+      toast({
+        title: "Error",
+        description: "Please provide a Git repository URL.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsInstalling(true)
+    appendToLog(`Installing ${appName} from Git repository...`)
+
+    // Simulate git clone and installation process
+    setTimeout(() => {
+      appendToLog(`git clone ${gitRepoUrl} temp_app_repo`)
+      appendToLog(`cd temp_app_repo`)
+      appendToLog(`xcodebuild -exportArchive -archivePath ${appName}.xcarchive -exportPath ./app -exportOptionsPlist ExportOptions.plist`)
+      appendToLog(`ios-deploy --bundle ./app/${appName}.ipa`)
+      appendToLog("App installed successfully on the device.")
+      setIsInstalling(false)
+      toast({
+        title: "App Installed",
+        description: `${appName} has been installed on the device from the Git repository.`,
+      })
+    }, 5000)
+  }
+
+  return (
+    <Card className="w-full max-w-2xl mx-auto">
+      <CardHeader>
+        <CardTitle className="text-2xl">Git-based App Installer</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="workspace-name">Workspace Name</Label>
+          <Input
+            id="workspace-name"
+            value={workspaceName}
+            onChange={(e) => setWorkspaceName(e.target.value)}
+            placeholder="MyApp"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="scheme-name">Scheme Name</Label>
+          <Input
+            id="scheme-name"
+            value={schemeName}
+            onChange={(e) => setSchemeName(e.target.value)}
+            placeholder="MyAppScheme"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="app-name">App Name</Label>
+          <Input
+            id="app-name"
+            value={appName}
+            onChange={(e) => setAppName(e.target.value)}
+            placeholder="MyApp"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="git-repo-url">Git Repository URL</Label>
+          <Input
+            id="git-repo-url"
+            value={gitRepoUrl}
+            onChange={(e) => setGitRepoUrl(e.target.value)}
+            placeholder="https://github.com/username/repo.git"
+          />
+        </div>
+        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+          <Button onClick={handleBuild} disabled={isBuilding} className="flex-1">
+            {isBuilding ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Play className="mr-2 h-4 w-4" />}
+            Build .app
+          </Button>
+          <Button onClick={handleBootSimulator} disabled={isBooting} className="flex-1">
+            {isBooting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Smartphone className="mr-2 h-4 w-4" />}
+            Boot Simulator
+          </Button>
+          <Button onClick={handleInstallApp} disabled={isInstalling} className="flex-1">
+            {isInstalling ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GitBranch className="mr-2 h-4 w-4" />}
+            Install from Git
+          </Button>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="log">Process Log</Label>
+          <Textarea
+            id="log"
+            value={log}
+            readOnly
+            className="h-40 font-mono text-sm"
+          />
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
